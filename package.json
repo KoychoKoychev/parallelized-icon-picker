@@ -18,6 +18,7 @@
   "homepage": "https://github.com/KoychoKoychev/parallelized-icon-picker#readme",
   "dependencies": {
     "dotenv": "^16.0.1",
+    "image-data-uri": "^2.0.1",
     "sqlite3": "^5.1.6"
   }
 }
