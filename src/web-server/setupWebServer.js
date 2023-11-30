@@ -1,6 +1,39 @@
 const http = require('http');
 const url = require('url');
 
+const { sortList } = require('../scripts/list-manupulation/sortList');
+const { indexList } = require('../scripts/list-manupulation/indexList');
+const { aggregateList } = require('../scripts/list-manupulation/aggregateList');
+const { convertCSVtoJSON } = require('../scripts/top-domain-list/fileManipulation');
+
+function prepareWebsiteList(iconFetcher) {
+    let WEBSITE_LIST_JSON
+    try {
+        WEBSITE_LIST_JSON = fs.readFileSync('data/website-list.json');
+    } catch (err) {
+        convertCSVtoJSON();
+        WEBSITE_LIST_JSON = fs.readFileSync('data/website-list.json');
+    }
+
+    let WEBSITE_LIST = JSON.parse(WEBSITE_LIST_JSON);
+
+    //it sorts the list according to the POSITION key and if there are duplicated POSITIONS, it renumbers it
+    sortList(WEBSITE_LIST);
+    //creates an object that has the DOMAIN name as an index
+    let INDEXED_LIST = indexList(WEBSITE_LIST);
+    //creates an aggregared list with keys - the 1-st 1,2,3 characters of the DOMAIN name, that include an array with the domain POSITION
+    let AGGREGATED_LIST = aggregateList(WEBSITE_LIST);
+
+    if (iconFetcher.getNormalQueueLength() === 0) {
+        for (let el of WEBSITE_LIST) {
+            if (getDomainFavicon(el.domain).length === 0) {
+                iconFetcher.queueRequest(el)
+            }
+        }
+    }
+
+    return [WEBSITE_LIST, INDEXED_LIST, AGGREGATED_LIST]
+}
 
 function createWebServer() {
     const server = http.createServer((req, res) => {
