@@ -1,3 +1,6 @@
 node_modules
 .env
 icons.db
+host10m.csv
+host10m.csv.gz
+website-list.json

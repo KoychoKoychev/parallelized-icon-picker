@@ -1,4 +1,4 @@
-const { getTopLists, convertCSVtoJSON } = require('./fileManupulation');
+const { getTopLists, convertCSVtoJSON } = require('./fileManipulation');
 const fs = require('fs');
 
 require('dotenv').config();

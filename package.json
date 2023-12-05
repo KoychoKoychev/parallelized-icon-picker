@@ -4,7 +4,9 @@
   "description": "API that picks icon for given domain",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "test": "mocha test/**/*.js",
+    "start": "node src/index.js",
+    "fetch": "node src/scripts/top-domain-list/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
   "dependencies": {
     "dotenv": "^16.0.1",
     "image-data-uri": "^2.0.1",
+    "mocha": "^10.2.0",
     "sqlite3": "^5.1.6"
   }
 }

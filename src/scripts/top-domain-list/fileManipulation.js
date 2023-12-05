@@ -52,7 +52,7 @@ function convertCSVtoJSON() {
                 domain,
                 position
             }
-        })
+        }).sort((a, b) => a.position - b.position)
         let json = JSON.stringify(result.slice(0, process.env.LIST_LENGTH));
         if (!fs.existsSync('data')) {
             fs.mkdirSync('data')

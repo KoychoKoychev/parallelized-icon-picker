@@ -3,12 +3,12 @@ const os = require('os')
 const path = require('path');
 
 const { getDomainIcon } = require('../db-commands/helpers');
-const WorkerPool = require('./worker_pool');
+const WorkerPool = require('./worker-pool.js');
 
 const interval = 100 //set interval[ms] between every (requiredSize.length) API requests
 const requiredSizes = ['16', '128']
 
-function iconFetcher() {
+function createIconFetcher() {
 
     const pool = new WorkerPool(Math.ceil(os.cpus().length / 2), path.resolve(__dirname, 'worker.js'))
 
@@ -167,5 +167,5 @@ function iconFetcher() {
 }
 
 module.exports = {
-    iconFetcher
+    createIconFetcher
 }
