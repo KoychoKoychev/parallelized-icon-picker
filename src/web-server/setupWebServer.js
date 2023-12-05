@@ -115,6 +115,7 @@ function createWebServer(WEBSITE_LIST, AGGREGATED_LIST, iconFetcher, INDEXED_LIS
                             for (let el of result) {
                                 if ((await getDomainIcon(el.domain)).length === 0) {
                                     for (let icon of Object.entries(el).filter(([key, value]) => key.includes('icon'))) {
+                                        if (!icon[1]) continue // make sure we don't save invalid data to the DB (dataUri is null)
                                         addIcon({
                                             domain: el.domain,
                                             size: (icon[0].split('-'))[1],
@@ -160,6 +161,7 @@ function createWebServer(WEBSITE_LIST, AGGREGATED_LIST, iconFetcher, INDEXED_LIS
                         try {
                             if ((await getDomainIcon(result.domain)).length === 0) {
                                 for (let icon of Object.entries(result).filter(([key, value]) => key.includes('icon'))) {
+                                    if (!icon[1]) continue // make sure we don't save invalid data to the DB (dataUri is null)
                                     addIcon({
                                         domain: result.domain,
                                         size: (icon[0].split('-'))[1],

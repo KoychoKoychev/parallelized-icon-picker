@@ -9,8 +9,8 @@ parentPort.on('message', (data) => {
 function encode(buffer, domain, size) {
     let dataUri = imageDataURI.encode(buffer, 'PNG')
     getDomainIcon(domain).then(icons => {
-        for(let el of icons){
-            if(el.dataUri === dataUri){
+        for (let el of icons) {
+            if (el.dataUri === dataUri) {
                 dataUri = null
             }
         }
