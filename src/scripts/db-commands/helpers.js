@@ -21,7 +21,7 @@ function getDomainIcon(domainName) {
             if (err) {
                 reject(err.message);
             }
-            resolve(row)
+            row ? resolve(row) : resolve([])
         })
     })
 }

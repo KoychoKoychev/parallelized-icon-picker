@@ -66,10 +66,15 @@ function createIconFetcher() {
             faviconPromises.push(new Promise((resolve) => {
                 resolvePromise = resolve
             }))
-            if (getDomainIcon(request.domain)) {
+            if (await getDomainIcon(request.domain)) {
                 sendRequest === false; //CHECK IF THERE IS ALREADY A RESULT FOR THIS DOMAIN IN THE DB AND DONT SEND REQUEST TO THE GOOGLE API IN THAT CASE
             }
-            let dbDataUri = getDomainFavicon(request.domain).find(el => el.size == size) ? getDomainFavicon(request.domain).find(el => el.size == size).dataUri : null
+            let dbDataUri
+            if ((await getDomainIcon(request.domain)).find(el => el.size == size)) {
+                dbDataUri = (await getDomainIcon(request.domain)).find(el => el.size == size).dataUri
+            } else {
+                dbDataUri = null
+            }
             if (dbDataUri === null && sendRequest === true) {
                 timeoutDuration = interval;
                 https.get(`https://www.google.com/s2/favicons?domain=${request.domain}&sz=${size}`, (res) => {
@@ -115,10 +120,9 @@ function createIconFetcher() {
                 resolvePromise({ size, dataUri: dbDataUri })
             }
         }
-
         return Promise.allSettled(faviconPromises)
-            .then((favicons) => {
-                request.resolve(favicons.map(el => el.value))
+            .then((icons) => {
+                request.resolve(icons.map(el => el.value))
             }).catch((err) => {
                 console.log(err)
             })
