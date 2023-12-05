@@ -17,7 +17,7 @@ function addIcon(data) {
 
 function getDomainIcon(domainName) {
     return new Promise((resolve, reject) => {
-        db.get("SELECT * FROM icons WHERE domain = ?", [domainName], (err, row) => {
+        db.all("SELECT * FROM icons WHERE domain = ?", [domainName], (err, row) => {
             if (err) {
                 reject(err.message);
             }

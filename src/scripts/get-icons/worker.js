@@ -1,6 +1,6 @@
 const { parentPort } = require('worker_threads');
 const imageDataURI = require('image-data-uri');
-const { getDomainIcon } = require('../create-database/dbCommands');
+const { getDomainIcon, addIcon } = require('../db-commands/helpers');
 
 parentPort.on('message', (data) => {
     parentPort.postMessage(encode(data.buffer, data.domain, data.size))
@@ -8,11 +8,18 @@ parentPort.on('message', (data) => {
 
 function encode(buffer, domain, size) {
     let dataUri = imageDataURI.encode(buffer, 'PNG')
-    for(let el of getDomainIcon(domain)){
-        if(el.dataUri === dataUri){
-            dataUri = null
+    getDomainIcon(domain).then(icons => {
+        for (let el of icons) {
+            if (el.dataUri === dataUri) {
+                dataUri = null
+            }
         }
-    }
+    })
+    addIcon({
+        domain,
+        size,
+        dataUri
+    })
     return {
         size,
         dataUri

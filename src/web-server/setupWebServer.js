@@ -1,11 +1,12 @@
 const http = require('http');
 const url = require('url');
+const fs = require('fs');
 
 const { sortList } = require('../scripts/list-manupulation/sortList');
 const { indexList } = require('../scripts/list-manupulation/indexList');
 const { aggregateList } = require('../scripts/list-manupulation/aggregateList');
 const { convertCSVtoJSON } = require('../scripts/top-domain-list/fileManipulation');
-const { getDomainIcon } = require('../scripts/db-commands/helpers');
+const { getDomainIcon, addIcon } = require('../scripts/db-commands/helpers');
 
 function prepareWebsiteList(iconFetcher) {
     let WEBSITE_LIST_JSON
@@ -27,9 +28,9 @@ function prepareWebsiteList(iconFetcher) {
 
     if (iconFetcher.getNormalQueueLength() === 0) {
         for (let el of WEBSITE_LIST) {
-            if (getDomainIcon(el.domain).length === 0) {
-                iconFetcher.queueRequest(el)
-            }
+            getDomainIcon(el.domain).then(icons => {
+                if (icons.length === 0) iconFetcher.queueRequest(el)
+            })
         }
     }
 
@@ -109,12 +110,13 @@ function createWebServer(WEBSITE_LIST, AGGREGATED_LIST, iconFetcher, INDEXED_LIS
                         requestEnded = true
                         result = data
                         res.end(JSON.stringify(data))
-                    }).then(() => {
+                    }).then(async () => {
                         try {
                             for (let el of result) {
-                                if (getDomainIcon(el.domain).length === 0) {
+                                if ((await getDomainIcon(el.domain)).length === 0) {
                                     for (let icon of Object.entries(el).filter(([key, value]) => key.includes('icon'))) {
-                                        addRow({
+                                        if (!icon[1]) continue // make sure we don't save invalid data to the DB (dataUri is null)
+                                        addIcon({
                                             domain: el.domain,
                                             size: (icon[0].split('-'))[1],
                                             dataUri: icon[1]
@@ -128,11 +130,6 @@ function createWebServer(WEBSITE_LIST, AGGREGATED_LIST, iconFetcher, INDEXED_LIS
                     }).catch((err)=>{
                         console.log(err);
                     })
-            } else if (pathname === '/selected' && req.method === 'GET') {
-                res.writeHead(503, { 'Content-Type': 'text/plain' })
-                requestEnded = true
-                return res.end('Selected icons ' + queryObject.lang)
-
             } else if (pathname === '/get' && req.method === 'GET') {
                 let domain = queryObject.domain
                 let output = {
@@ -160,11 +157,12 @@ function createWebServer(WEBSITE_LIST, AGGREGATED_LIST, iconFetcher, INDEXED_LIS
                             result = Object.assign(output, iconObject)
                             res.end(JSON.stringify(Object.assign(output, iconObject)))
                         }
-                    }).then(() => {
+                    }).then(async () => {
                         try {
-                            if (getDomainIcon(result.domain).length === 0) {
+                            if ((await getDomainIcon(result.domain)).length === 0) {
                                 for (let icon of Object.entries(result).filter(([key, value]) => key.includes('icon'))) {
-                                    addRow({
+                                    if (!icon[1]) continue // make sure we don't save invalid data to the DB (dataUri is null)
+                                    addIcon({
                                         domain: result.domain,
                                         size: (icon[0].split('-'))[1],
                                         dataUri: icon[1]

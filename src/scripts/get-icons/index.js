@@ -3,12 +3,12 @@ const os = require('os')
 const path = require('path');
 
 const { getDomainIcon } = require('../db-commands/helpers');
-const WorkerPool = require('./worker_pool');
+const WorkerPool = require('./worker-pool.js');
 
 const interval = 100 //set interval[ms] between every (requiredSize.length) API requests
 const requiredSizes = ['16', '128']
 
-function iconFetcher() {
+function createIconFetcher() {
 
     const pool = new WorkerPool(Math.ceil(os.cpus().length / 2), path.resolve(__dirname, 'worker.js'))
 
@@ -66,10 +66,16 @@ function iconFetcher() {
             faviconPromises.push(new Promise((resolve) => {
                 resolvePromise = resolve
             }))
-            if (getDomainIcon(request.domain)) {
+            if (await getDomainIcon(request.domain)) {
                 sendRequest === false; //CHECK IF THERE IS ALREADY A RESULT FOR THIS DOMAIN IN THE DB AND DONT SEND REQUEST TO THE GOOGLE API IN THAT CASE
             }
-            let dbDataUri = getDomainFavicon(request.domain).find(el => el.size == size) ? getDomainFavicon(request.domain).find(el => el.size == size).dataUri : null
+            let dbDataUri
+            const iconSavedInDB = await getDomainIcon(request.domain)
+            if (iconSavedInDB.find(el => el.size == size)) {
+                dbDataUri = iconSavedInDB.find(el => el.size == size).dataUri
+            } else {
+                dbDataUri = null
+            }
             if (dbDataUri === null && sendRequest === true) {
                 timeoutDuration = interval;
                 https.get(`https://www.google.com/s2/favicons?domain=${request.domain}&sz=${size}`, (res) => {
@@ -115,10 +121,9 @@ function iconFetcher() {
                 resolvePromise({ size, dataUri: dbDataUri })
             }
         }
-
         return Promise.allSettled(faviconPromises)
-            .then((favicons) => {
-                request.resolve(favicons.map(el => el.value))
+            .then((icons) => {
+                request.resolve(icons.map(el => el.value))
             }).catch((err) => {
                 console.log(err)
             })
@@ -167,5 +172,5 @@ function iconFetcher() {
 }
 
 module.exports = {
-    iconFetcher
+    createIconFetcher
 }
