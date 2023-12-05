@@ -70,8 +70,9 @@ function createIconFetcher() {
                 sendRequest === false; //CHECK IF THERE IS ALREADY A RESULT FOR THIS DOMAIN IN THE DB AND DONT SEND REQUEST TO THE GOOGLE API IN THAT CASE
             }
             let dbDataUri
-            if ((await getDomainIcon(request.domain)).find(el => el.size == size)) {
-                dbDataUri = (await getDomainIcon(request.domain)).find(el => el.size == size).dataUri
+            const iconSavedInDB = await getDomainIcon(request.domain)
+            if (iconSavedInDB.find(el => el.size == size)) {
+                dbDataUri = iconSavedInDB.find(el => el.size == size).dataUri
             } else {
                 dbDataUri = null
             }
